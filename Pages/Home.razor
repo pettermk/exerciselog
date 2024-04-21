@@ -1,0 +1,48 @@
+﻿@using System.Text.Json;
+
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+@code {
+    string IdToken;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IdToken = await ReadIdToken();
+    }
+
+     private async Task<string> ReadIdToken()
+     {
+          const string clientId = "your oidc client id";
+          var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+
+          var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
+          // var user = await JSRuntime.InvokeAsync<UserData>("sessionStorage.getItem", userDataKey);
+          // Console.WriteLine(userData);
+          
+          var user = JsonSerializer.Deserialize<UserData>(userData);
+          
+          // return userData.id_token;
+          return user.id_token;          
+     }
+
+     class UserData
+     {
+         public string id_token { get; set; }
+         public int expires_at { get; set; }
+     }
+}
+@page "/"
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<div class="alert alert-warning" role="alert">
+    Before authentication will function correctly, you must configure your provider details in <code>Program.cs</code>
+</div>
+
+Welcome to your new app.
+<ErrorBoundary>
+Your ID token id @IdToken
+</ErrorBoundary>

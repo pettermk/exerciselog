@@ -1,0 +1,276 @@
+@page "/exercise"
+@using System.Text.Json
+@using System.Net.Http.Headers
+@inject Api apiService
+@inject IJSRuntime JSRuntime
+@inject HttpClient httpClient
+
+<style>
+    /* Modal styles */
+    .modal {
+        display: block;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Modal content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+    }
+
+    /* Close button */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+</style>
+
+<PageTitle>Exercise logging</PageTitle>
+
+<h1>Exercises</h1>
+
+<p>Log your exercise</p>
+
+@if (exercises == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <select class="select" @onchange="ExerciseChanged">
+        @if (exercises != null)
+        {
+            @foreach (var exercise in exercises)
+            {
+                <option value="@exercise.Id" mouse>@exercise.Name</option>
+            }
+        }
+    </select>
+    <input @bind="numReps" title="Repetitions">
+    <input class="input" @bind="weight" title="Weight">
+    <button class="btn btn-primary" @onclick="AddSet">Add workout</button>
+    <div>
+        <button class="btn btn-primary" @onclick="ShowPopup">Create new exercise</button>
+
+        @if (isPopupVisible)
+        {
+            <div class="modal">
+                <div class="modal-content">
+                    <span class="close" @onclick="HidePopup">&times;</span>
+                    <h2>Create a new exercise</h2>
+                    <input class="input" @bind="newExerciseName" placeholder="Name" />
+                    <input class="input" @bind="newExerciseDescription" placeholder="Description" />
+                    <button class="btn btn-primary" @onclick="CreateExercise">Create</button>
+                </div>
+            </div>
+        }
+    </div>
+    @if (sets != null)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Reps</td>
+                    <td>Weight</td>
+                    <td>Time</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var setdto in sets)
+                {
+                    <tr>
+                        <td>@setdto.reps</td>
+                        <td>@setdto.weight</td>
+                        <td>@setdto.timestamp</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private List<ExerciseDto>? exercises;
+    private int selectedExercise;
+    private int numReps;
+    private float weight;
+    private List<SetDto>? sets;
+    
+    bool isPopupVisible = false;
+    string newExerciseName;
+    string newExerciseDescription;
+
+    class UserData
+    {
+        public string id_token { get; set; }
+        public int expires_at { get; set; }
+    }
+
+    class SetDto {
+        public int id { get; set; }
+        public int exercideId { get; set; }
+        public string timestamp { get; set; }
+        public float weight { get; set; }
+        public int reps { get; set; }
+    }
+
+    void ShowPopup()
+    {
+        isPopupVisible = true;
+        StateHasChanged();
+    }
+
+    void HidePopup()
+    {
+        isPopupVisible = false;
+        StateHasChanged();
+    }
+
+    async Task CreateExercise()
+    {
+        // Perform your API call with input1 and input2
+        // For example:
+        await apiService.PostExercise(newExerciseName, newExerciseDescription);
+
+        // After API call, you can hide the popup
+        HidePopup();
+    }
+
+    private async Task FetchExercises()
+    {
+        // Create HttpRequestMessage to modify headers if needed
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://exerciselog-api.kvalvaag-tech.com/api/exercise");
+
+        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
+        Console.WriteLine(userData);
+        
+        var user = JsonSerializer.Deserialize<UserData>(userData);
+        
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", user.id_token);
+
+        // Send the request and get the response
+        var response = await httpClient.SendAsync(request);
+
+        // Ensure success status code
+        response.EnsureSuccessStatusCode();
+
+        // Deserialize the response into a list of Person objects
+        exercises = await response.Content.ReadFromJsonAsync<List<ExerciseDto>>();
+    }
+
+    private async void AddSet() {
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/set");
+
+        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
+        
+        var user = JsonSerializer.Deserialize<UserData>(userData);
+        
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", user.id_token);
+
+        string currentTime = DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        var postData = new {
+            exerciseId = selectedExercise,
+            timestamp = currentTime,
+            reps = numReps,
+            weight = weight
+        };
+
+        var json = JsonSerializer.Serialize(postData);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        request.Content = content;
+
+        var response = await httpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("POST request successful. Response: " + responseContent);
+        }
+        UpdateLatestExercises(selectedExercise);
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        // Perform initial table update based on default selection
+        await FetchExercises();
+        selectedExercise = exercises.First().Id;
+        UpdateLatestExercises(selectedExercise);
+    }
+
+    private void ExerciseChanged(ChangeEventArgs args)
+    {
+        selectedExercise = int.Parse(args.Value.ToString());
+        UpdateLatestExercises(selectedExercise);
+    }    
+
+    private async void UpdateLatestExercises(int exerciseId)
+    {
+        // Create HttpRequestMessage to modify headers if needed
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://exerciselog-api.kvalvaag-tech.com/api/set/{exerciseId}");
+
+        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
+        Console.WriteLine(userData);
+        
+        var user = JsonSerializer.Deserialize<UserData>(userData);
+        
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", user.id_token);
+
+        // Send the request and get the response
+        var response = await httpClient.SendAsync(request);
+
+        // Ensure success status code
+        response.EnsureSuccessStatusCode();
+
+        // Deserialize the response into a list of Person objects
+        sets = await response.Content.ReadFromJsonAsync<List<SetDto>>();
+        StateHasChanged();
+        foreach (var setdto in sets)
+        {
+            Console.WriteLine(setdto.ToString());
+            Console.WriteLine(setdto.reps);
+            Console.WriteLine(setdto.weight);
+        }
+
+    }
+
+
+    public class ExerciseDto {
+        public int Id { get; set; }
+
+        public required string Name { get; set; }
+
+        public string Description { get; set; }
+    }
+
+    public class WeatherForecast
+    {
+        public DateOnly Date { get; set; }
+
+        public int TemperatureC { get; set; }
+
+        public string? Summary { get; set; }
+
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}
