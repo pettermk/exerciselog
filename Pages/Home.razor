@@ -1,6 +1,7 @@
 ﻿@using System.Text.Json;
 
 @inject IJSRuntime JSRuntime
+@inject Api apiService
 @inject NavigationManager NavigationManager
 
 @code {
@@ -14,7 +15,8 @@
      private async Task<string> ReadIdToken()
      {
           const string clientId = "your oidc client id";
-          var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+          var userDataKey = apiService.GetUserDataKey();
+          Console.WriteLine(userDataKey);
 
           var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
           // var user = await JSRuntime.InvokeAsync<UserData>("sessionStorage.getItem", userDataKey);

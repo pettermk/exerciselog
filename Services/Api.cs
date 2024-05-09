@@ -2,14 +2,17 @@ using System.Net.Http.Headers;
 using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Net.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace exerciselog.Services;
 
 class Api {
     private readonly IJSRuntime _jsRuntime;
-    public Api(IJSRuntime jsRuntime)
+    private readonly IConfiguration _config;
+    public Api(IJSRuntime jsRuntime, IConfiguration config)
     {
         _jsRuntime = jsRuntime;
+        _config = config;
     }
     
     class UserData
@@ -18,8 +21,14 @@ class Api {
         public int expires_at { get; set; }
     }
 
+    public string GetUserDataKey() {
+        var clientId = _config["Local:ClientId"];
+        Console.WriteLine(clientId);
+        return $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:{clientId}";
+    }
+
     private async Task<string> GetToken() {
-        var userDataKey = "oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userDataKey = GetUserDataKey();
         var userData = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
         var user = JsonSerializer.Deserialize<UserData>(userData);
         return user.id_token;

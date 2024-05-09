@@ -160,7 +160,7 @@ else
         // Create HttpRequestMessage to modify headers if needed
         var request = new HttpRequestMessage(HttpMethod.Get, "https://exerciselog-api.kvalvaag-tech.com/api/exercise");
 
-        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userDataKey = apiService.GetUserDataKey();
         var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
         Console.WriteLine(userData);
         
@@ -181,7 +181,7 @@ else
     private async void AddSet() {
         var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/set");
 
-        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userDataKey = apiService.GetUserDataKey();
         var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
         
         var user = JsonSerializer.Deserialize<UserData>(userData);
@@ -213,8 +213,10 @@ else
     {
         // Perform initial table update based on default selection
         await FetchExercises();
-        selectedExercise = exercises.First().Id;
-        UpdateLatestExercises(selectedExercise);
+        if (exercises.Any()) {
+            selectedExercise = exercises.First().Id;
+            UpdateLatestExercises(selectedExercise);
+        }
     }
 
     private void ExerciseChanged(ChangeEventArgs args)
@@ -228,7 +230,7 @@ else
         // Create HttpRequestMessage to modify headers if needed
         var request = new HttpRequestMessage(HttpMethod.Get, $"https://exerciselog-api.kvalvaag-tech.com/api/set/{exerciseId}");
 
-        var userDataKey = $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:I9xkPt8LYNR81aOK8Xz1z4ppCiYz9CvEdF6fG3ud";
+        var userDataKey = apiService.GetUserDataKey();
         var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
         Console.WriteLine(userData);
         
