@@ -1,4 +1,5 @@
 .mono/
+build/
 .vscode/
 bin/
 obj/
