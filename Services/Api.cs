@@ -6,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 
 namespace exerciselog.Services;
 
-class Api {
+class Api
+{
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _config;
     public Api(IJSRuntime jsRuntime, IConfiguration config)
@@ -59,4 +60,33 @@ class Api {
             Console.WriteLine("POST request successful. Response: " + responseContent);
         }
     }
+
+
+    public async Task PostTimeseries(TimeseriesDto Ts)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/timeseries");
+
+        var json = JsonSerializer.Serialize(Ts);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        request.Content = content;
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("POST request successful. Response: " + responseContent);
+        }
+    }
+}
+
+public class TimeseriesDto
+{
+    public int Id { get; set; }
+    public double Value { get; set; }
+    public string Timestamp { get; set; } = "";
+    public string Dimension { get; set; } = "";
+    public List<string> Tags { get; set; } = [];
+    public string? Metadata { get; set; }
 }

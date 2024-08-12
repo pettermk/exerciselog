@@ -1,0 +1,37 @@
+@page "/timeseries"
+@using System.Text.Json
+@using System.Net.Http.Headers
+@using exerciselog.Services
+@inject Api apiService
+
+<PageTitle>Timeseries</PageTitle>
+
+<h1>Timeseries</h1>
+<p>Log your time series</p>
+
+<select class="select">
+    @if (Dimensions != null)
+    {
+        @foreach (var Dimension in Dimensions)
+        {
+            <option>@Dimension</option>
+        }
+    }
+</select>
+Timestamp: <input @bind="Ts.Timestamp" title="Timestamp">
+Dimension: <input class="input" @bind="Ts.Dimension" title="Dimension">
+Value: <input class="input" @bind="Ts.Value" title="Value">
+Tags: <input class="input" @bind="Tags" title="Tags (comma separated)">
+<button class="btn btn-primary" @onclick="CreateTimeseries">Add timeseries</button>
+
+@code {
+    public TimeseriesDto Ts = new TimeseriesDto();
+    public string Tags = "";
+    private List<string> Dimensions = [];
+
+    async Task CreateTimeseries()
+    {
+        await apiService.PostTimeseries(Ts);
+    }
+
+}
