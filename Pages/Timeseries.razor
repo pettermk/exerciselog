@@ -2,32 +2,94 @@
 @using System.Text.Json
 @using System.Net.Http.Headers
 @using exerciselog.Services
+@using MudBlazor
 @inject Api apiService
 
 <PageTitle>Timeseries</PageTitle>
 
 <h1>Timeseries</h1>
 <p>Log your time series</p>
+@page "/example-form"
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudCard>
+        <MudCardContent>
+            <MudText Typo="Typo.h6">Register timeseries entry</MudText>
+            <MudForm>
+                <!-- Full Name -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2">Time</MudText>
+                    <MudDatePicker @bind-Date="@Date" Editable="true" Label="Select Date" />
+                    <MudTimePicker @bind-Time="@selectedTime" Editable="true" Label="Select Time" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2">Dimension</MudText>
+                    <MudSelect T="string" Label="Select dimension" @bind-Value="Ts.Dimension" Variant="Variant.Filled" Searchable="true">
+                    @if (Dimensions != null)
+                    {
+                        @foreach (var Dimension in Dimensions)
+                        {
+                            <MudSelectItem Value="Dimension">@Dimension</MudSelectItem>
+                        }
+                    }
+                    </MudSelect>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2">Value</MudText>
+                    <MudTextField T="double" Label="Value" @bind-Value="Ts.Value">0.0</MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle2">Tags</MudText>
+                    <MudTextField T="string" Label="Tags" @bind-Value="Tags"></MudTextField>
+                </MudItem>
+
+                <!-- Submit Button -->
+                <MudItem xs="12" Class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+                </MudItem>
+            </MudForm>
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
 
 <select class="select">
-    @if (Dimensions != null)
-    {
-        @foreach (var Dimension in Dimensions)
-        {
-            <option>@Dimension</option>
-        }
-    }
 </select>
-Timestamp: <input @bind="Ts.Timestamp" title="Timestamp">
-Dimension: <input class="input" @bind="Ts.Dimension" title="Dimension">
-Value: <input class="input" @bind="Ts.Value" title="Value">
-Tags: <input class="input" @bind="Tags" title="Tags (comma separated)">
+<div class="form-container">
+    <div class="form-group">
+        <label for="timestamp">Timestamp</label>
+        <MudDatePicker @bind-Date="@Date" Editable="true" Label="Select Date" />
+        <MudTimePicker @bind-Time="@selectedTime" Editable="true" Label="Select Time" />
+    </div>
+</div>
+<div class="form-container">
+    <div class="form-group">
+        <label for="dimension">Dimension</label>
+        <input class="input" @bind="Ts.Dimension" title="Dimension">
+    </div>
+</div>
+<div class="form-container">
+    <div class="form-group">
+        <label for="value">Value</label>
+        <input @bind="Ts.Value" title="Value">
+    </div>
+</div>
+<div class="form-container">
+    <div class="form-group">
+        <label for="tags">Tags</label>
+        <input @bind="Tags" title="Tags">
+    </div>
+</div>
 <button class="btn btn-primary" @onclick="CreateTimeseries">Add timeseries</button>
 
 @code {
     public TimeseriesDto Ts = new TimeseriesDto();
     public string Tags = "";
-    private List<string> Dimensions = [];
+    public DateTime? Date = DateTime.Today;
+    public TimeSpan? selectedTime = DateTime.UtcNow - DateTime.Today;
+    private List<string> Dimensions = ["this", "that"];
 
     async Task CreateTimeseries()
     {
