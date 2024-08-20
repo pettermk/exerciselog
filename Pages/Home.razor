@@ -12,27 +12,35 @@
         IdToken = await ReadIdToken();
     }
 
-     private async Task<string> ReadIdToken()
-     {
-          const string clientId = "your oidc client id";
-          var userDataKey = apiService.GetUserDataKey();
-          Console.WriteLine(userDataKey);
+    private async Task<string> ReadIdToken()
+    {
+        const string clientId = "your oidc client id";
+        var userDataKey = apiService.GetUserDataKey();
+        Console.WriteLine(userDataKey);
 
-          var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
-          // var user = await JSRuntime.InvokeAsync<UserData>("sessionStorage.getItem", userDataKey);
-          // Console.WriteLine(userData);
-          
-          var user = JsonSerializer.Deserialize<UserData>(userData);
-          
-          // return userData.id_token;
-          return user.id_token;          
-     }
+        var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
+        // var user = await JSRuntime.InvokeAsync<UserData>("sessionStorage.getItem", userDataKey);
+        // Console.WriteLine(userData);
 
-     class UserData
-     {
-         public string id_token { get; set; }
-         public int expires_at { get; set; }
-     }
+        UserData? user = null;
+        try
+        {
+            user = JsonSerializer.Deserialize<UserData>(userData);
+        }
+        catch (Exception ex)
+        {
+            user = new UserData { id_token = "Token", expires_at = 0 };
+        }
+
+        // return userData.id_token;
+        return user.id_token;
+    }
+
+    class UserData
+    {
+        public string id_token { get; set; }
+        public int expires_at { get; set; }
+    }
 }
 @page "/"
 
