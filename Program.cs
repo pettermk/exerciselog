@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using System.Net.Http;
+using MudBlazor.Services;
 using exerciselog;
 using exerciselog.Services;
 
@@ -22,5 +23,6 @@ builder.Services.AddHttpClient("WebAPI",
         client => client.BaseAddress = new Uri("https://exerciselog-api.kvalvaag-tech.com/api"))
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 
+builder.Services.AddMudServices();
 
 await builder.Build().RunAsync();
