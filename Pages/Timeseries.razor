@@ -1,9 +1,13 @@
 @page "/timeseries"
 @using System.Text.Json
 @using System.Net.Http.Headers
+@using MudBlazor.Extensions
 @using exerciselog.Services
 @using MudBlazor
+@using Microsoft.Extensions.Logging
 @inject Api apiService
+@inject IJSRuntime JS
+@inject ILogger<Timeseries> Logger
 
 <PageTitle>Timeseries</PageTitle>
 
@@ -47,42 +51,12 @@
 
                 <!-- Submit Button -->
                 <MudItem xs="12" Class="mt-4">
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
+                    <MudButton @onclick="CreateTimeseries" Variant="Variant.Filled" Color="Color.Primary">Submit</MudButton>
                 </MudItem>
             </MudForm>
         </MudCardContent>
     </MudCard>
 </MudContainer>
-
-
-<select class="select">
-</select>
-<div class="form-container">
-    <div class="form-group">
-        <label for="timestamp">Timestamp</label>
-        <MudDatePicker @bind-Date="@Date" Editable="true" Label="Select Date" />
-        <MudTimePicker @bind-Time="@selectedTime" Editable="true" Label="Select Time" />
-    </div>
-</div>
-<div class="form-container">
-    <div class="form-group">
-        <label for="dimension">Dimension</label>
-        <input class="input" @bind="Ts.Dimension" title="Dimension">
-    </div>
-</div>
-<div class="form-container">
-    <div class="form-group">
-        <label for="value">Value</label>
-        <input @bind="Ts.Value" title="Value">
-    </div>
-</div>
-<div class="form-container">
-    <div class="form-group">
-        <label for="tags">Tags</label>
-        <input @bind="Tags" title="Tags">
-    </div>
-</div>
-<button class="btn btn-primary" @onclick="CreateTimeseries">Add timeseries</button>
 
 @code {
     public TimeseriesDto Ts = new TimeseriesDto();
@@ -91,8 +65,12 @@
     public TimeSpan? selectedTime = DateTime.UtcNow - DateTime.Today;
     private List<string> Dimensions = ["this", "that"];
 
-    async Task CreateTimeseries()
+    private async void CreateTimeseries()
     {
+        var TimeStamp = Date + selectedTime;
+        Ts.Timestamp = TimeStamp.HasValue
+            ? TimeStamp.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+            : "";
         await apiService.PostTimeseries(Ts);
     }
 
