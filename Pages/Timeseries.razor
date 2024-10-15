@@ -28,16 +28,25 @@
                 </MudItem>
 
                 <MudItem xs="12">
-                    <MudText Typo="Typo.subtitle2">Dimension</MudText>
-                    <MudSelect T="string" Label="Select dimension" @bind-Value="Ts.Dimension" Variant="Variant.Filled" Searchable="true">
-                    @if (Dimensions != null)
+                    <MudRadioGroup @bind-Value="UseExistingDimension">
+                        <MudRadio Value="true">Existing dimension</MudRadio>
+                        <MudRadio Value="false">New dimension</MudRadio>
+                    </MudRadioGroup>
+                    @if (UseExistingDimension)
                     {
-                        @foreach (var Dimension in Dimensions)
-                        {
-                            <MudSelectItem Value="Dimension">@Dimension</MudSelectItem>
-                        }
+                        <MudAutocomplete T="string" Label="Select or enter a dimension" @bind-Value="Ts.Dimension"
+                            CoerceText="true" Clearable="true" Placeholder="Choose dimension" SearchFunc="SearchValues">
+                        </MudAutocomplete>
                     }
-                    </MudSelect>
+                    else
+                    {
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle2">Dimension</MudText>
+                            <MudTextField T="string" Label="Value" @bind-Value="NewDimension">Dimension</MudTextField>
+                        </MudItem>
+                    }
+
+                    <p>You selected: @SelectedValue</p>
                 </MudItem>
 
                 <MudItem xs="12">
@@ -65,13 +74,37 @@
     public TimeSpan? selectedTime = DateTime.UtcNow - DateTime.Today;
     private List<string> Dimensions = ["this", "that"];
 
+    public bool UseExistingDimension { get; set; }
+
+    private string NewDimension { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        // Asynchronous initialization code
+        // Example: Fetch data from an API
+        Dimensions = await apiService.GetUniqueTimeseriesDimensions();
+        UseExistingDimension = true;
+    }
+
     private async void CreateTimeseries()
     {
         var TimeStamp = Date + selectedTime;
         Ts.Timestamp = TimeStamp.HasValue
             ? TimeStamp.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
             : "";
+        if (!UseExistingDimension)
+        {
+            Ts.Dimension = NewDimension;
+        }
         await apiService.PostTimeseries(Ts);
     }
 
+    private string SelectedValue { get; set; }
+
+    // Search function to filter values based on user input
+    private Task<IEnumerable<string>> SearchValues(string value, CancellationToken token)
+    {
+        // Filter the list based on the input and return matching values
+        var result = Dimensions.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        return Task.FromResult(result);
+    }
 }
