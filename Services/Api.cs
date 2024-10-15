@@ -79,6 +79,27 @@ class Api
             Console.WriteLine("POST request successful. Response: " + responseContent);
         }
     }
+
+    public async Task<List<string>> GetUniqueTimeseriesDimensions()
+    {
+        // var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/timeseries");
+
+        /*
+        var json = JsonSerializer.Serialize(Ts);
+        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+        request.Content = content;
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("POST request successful. Response: " + responseContent);
+        }
+        */
+        return ["Option1", "Option2"];
+    }
 }
 
 public class TimeseriesDto
