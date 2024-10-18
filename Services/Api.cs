@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using System.Text.Json;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using System.Net.Http.Json;
 
 namespace exerciselog.Services;
 
@@ -15,34 +16,45 @@ class Api
         _jsRuntime = jsRuntime;
         _config = config;
     }
-    
+
     class UserData
     {
         public string id_token { get; set; }
         public int expires_at { get; set; }
     }
 
-    public string GetUserDataKey() {
+
+    public string GetUserDataKey()
+    {
         var clientId = _config["Local:ClientId"];
         Console.WriteLine(clientId);
         return $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:{clientId}";
     }
 
-    private async Task<string> GetToken() {
+    private async Task<string> GetToken()
+    {
         var userDataKey = GetUserDataKey();
         var userData = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
         var user = JsonSerializer.Deserialize<UserData>(userData);
         return user.id_token;
     }
 
-    private async Task<AuthenticationHeaderValue> GetAuthorizationHeader() {
+
+
+    private async Task<AuthenticationHeaderValue> GetAuthorizationHeader()
+    {
         return new AuthenticationHeaderValue("Bearer", await GetToken());
     }
 
+
+
     public async Task PostExercise(string Name, string Description)
+
     {
+
         var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/exercise");
-        var postData = new {
+        var postData = new
+        {
             name = Name,
             description = Description
         };
@@ -82,23 +94,20 @@ class Api
 
     public async Task<List<string>> GetUniqueTimeseriesDimensions()
     {
-        // var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/timeseries");
-
-        /*
-        var json = JsonSerializer.Serialize(Ts);
-        var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
-        request.Content = content;
+        var request = new HttpRequestMessage(HttpMethod.Get, "https://exerciselog-api.kvalvaag-tech.com/api/DistinctDimensions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
 
         var httpClient = new HttpClient();
         var response = await httpClient.SendAsync(request);
+        var UniqueDimensions = await response.Content.ReadFromJsonAsync<List<string>>();
+
         if (response.IsSuccessStatusCode)
         {
             var responseContent = await response.Content.ReadAsStringAsync();
             Console.WriteLine("POST request successful. Response: " + responseContent);
         }
-        */
-        return ["Option1", "Option2"];
+
+        return UniqueDimensions;
     }
 }
 
