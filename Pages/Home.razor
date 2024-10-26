@@ -1,8 +1,10 @@
 ﻿@using System.Text.Json;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 
 @inject IJSRuntime JSRuntime
 @inject Api apiService
 @inject NavigationManager NavigationManager
+@inject IAccessTokenProvider AccessTokenProvider
 
 @code {
     string IdToken;
@@ -14,26 +16,13 @@
 
     private async Task<string> ReadIdToken()
     {
-        const string clientId = "your oidc client id";
-        var userDataKey = apiService.GetUserDataKey();
-        Console.WriteLine(userDataKey);
-
-        var userData = await JSRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
-        // var user = await JSRuntime.InvokeAsync<UserData>("sessionStorage.getItem", userDataKey);
-        // Console.WriteLine(userData);
-
-        UserData? user = null;
-        try
+        var tokenResult = await AccessTokenProvider.RequestAccessToken();
+        if (tokenResult.TryGetToken(out var accessToken))
         {
-            user = JsonSerializer.Deserialize<UserData>(userData);
+            Console.Write(accessToken.Value);
+            return accessToken.Value; // Use the access token here
         }
-        catch (Exception ex)
-        {
-            user = new UserData { id_token = "Token", expires_at = 0 };
-        }
-
-        // return userData.id_token;
-        return user.id_token;
+        return "";
     }
 
     class UserData

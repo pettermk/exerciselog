@@ -5,16 +5,21 @@ using System.Net.Http;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
 
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+
 namespace exerciselog.Services;
 
 class Api
 {
     private readonly IJSRuntime _jsRuntime;
     private readonly IConfiguration _config;
-    public Api(IJSRuntime jsRuntime, IConfiguration config)
+    private readonly IAccessTokenProvider _tokenProvider;
+
+    public Api(IJSRuntime jsRuntime, IConfiguration config, IAccessTokenProvider tokenProvider)
     {
         _jsRuntime = jsRuntime;
         _config = config;
+        _tokenProvider = tokenProvider;
     }
 
     class UserData
@@ -23,22 +28,15 @@ class Api
         public int expires_at { get; set; }
     }
 
-
-    public string GetUserDataKey()
+    public async Task<string> GetToken()
     {
-        var clientId = _config["Local:ClientId"];
-        Console.WriteLine(clientId);
-        return $"oidc.user:https://homeautomation-api.kvalvaag-tech.com/o:{clientId}";
+        var tokenResult = await _tokenProvider.RequestAccessToken();
+        if (tokenResult.TryGetToken(out var accessToken))
+        {
+            return accessToken.Value; // Use the access token here
+        }
+        return "";
     }
-
-    private async Task<string> GetToken()
-    {
-        var userDataKey = GetUserDataKey();
-        var userData = await _jsRuntime.InvokeAsync<string>("sessionStorage.getItem", userDataKey);
-        var user = JsonSerializer.Deserialize<UserData>(userData);
-        return user.id_token;
-    }
-
 
 
     private async Task<AuthenticationHeaderValue> GetAuthorizationHeader()
