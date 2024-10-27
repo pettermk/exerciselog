@@ -18,6 +18,7 @@ builder.Services.AddOidcAuthentication(options =>
     // Configure your authentication provider options here.
     // For more information, see https://aka.ms/blazor-standalone-auth
     builder.Configuration.Bind("Local", options.ProviderOptions);
+    options.ProviderOptions.DefaultScopes.Add("offline_access");
 });
 builder.Services.AddHttpClient("WebAPI", 
         client => client.BaseAddress = new Uri("https://exerciselog-api.kvalvaag-tech.com/api"))
