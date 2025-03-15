@@ -65,6 +65,24 @@
             </MudForm>
         </MudCardContent>
     </MudCard>
+
+    <MudCard>
+        <MudCardContent>
+        <h3>Latest timeseries</h3>
+            <MudTable Items="@LatestTimeseries" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+                <HeaderContent>
+                    <MudTh>Time</MudTh>
+                    <MudTh>Dimension</MudTh>
+                    <MudTh>Value</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Time">@context.Timestamp</MudTd>
+                    <MudTd DataLabel="Dimension">@context.Dimension</MudTd>
+                    <MudTd DataLabel="Value">@context.Value</MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudCardContent>
+    </MudCard>
 </MudContainer>
 
 @code {
@@ -73,6 +91,8 @@
     public DateTime? Date = DateTime.Today;
     public TimeSpan? selectedTime = DateTime.UtcNow - DateTime.Today;
     private List<string> Dimensions = ["this", "that"];
+    private List<TimeseriesDto> LatestTimeseries = [];
+    private bool _loading;
 
     public bool UseExistingDimension { get; set; }
 
@@ -82,6 +102,7 @@
         // Asynchronous initialization code
         // Example: Fetch data from an API
         Dimensions = await apiService.GetUniqueTimeseriesDimensions();
+        LatestTimeseries = await apiService.GetLatestTimeseries(5);
         UseExistingDimension = true;
     }
 

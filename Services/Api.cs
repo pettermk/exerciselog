@@ -110,6 +110,23 @@ class Api
 
         return UniqueDimensions;
     }
+    public async Task<List<TimeseriesDto>> GetLatestTimeseries(int noLatest)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/api/Timeseries/latest?number={noLatest}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.SendAsync(request);
+        var LatestTimeseries = await response.Content.ReadFromJsonAsync<List<TimeseriesDto>>();
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("GET request successful. Response: " + responseContent);
+        }
+
+        return LatestTimeseries;
+    }
 }
 
 public class TimeseriesDto
