@@ -7,6 +7,7 @@
 @using Microsoft.Extensions.Logging
 @inject Api apiService
 @inject IJSRuntime JS
+@inject ISnackbar Snackbar
 @inject ILogger<Timeseries> Logger
 
 <PageTitle>Timeseries</PageTitle>
@@ -116,7 +117,16 @@
         {
             Ts.Dimension = NewDimension;
         }
-        await apiService.PostTimeseries(Ts);
+        try {
+            await apiService.PostTimeseries(Ts);
+            Snackbar.Add("Data submitted successfully!");
+            LatestTimeseries = await apiService.GetLatestTimeseries(5);
+            StateHasChanged();
+        }
+        catch (Exception ex) {
+            Console.Write(ex.Message);
+            Snackbar.Add("Failed to submit timeseries");
+        }
     }
 
     private string SelectedValue { get; set; }
