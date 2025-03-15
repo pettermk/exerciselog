@@ -15,6 +15,9 @@ class Api
     private readonly IConfiguration _config;
     private readonly IAccessTokenProvider _tokenProvider;
 
+    // static private string _baseUrl = "http://localhost:5073";
+    static private string _baseUrl = "https://exerciselog-api.kvalvaag-tech.com";
+
     public Api(IJSRuntime jsRuntime, IConfiguration config, IAccessTokenProvider tokenProvider)
     {
         _jsRuntime = jsRuntime;
@@ -50,7 +53,7 @@ class Api
 
     {
 
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/exercise");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/exercise");
         var postData = new
         {
             name = Name,
@@ -74,7 +77,7 @@ class Api
 
     public async Task PostTimeseries(TimeseriesDto Ts)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://exerciselog-api.kvalvaag-tech.com/api/timeseries");
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/timeseries");
 
         var json = JsonSerializer.Serialize(Ts);
         var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
@@ -92,7 +95,7 @@ class Api
 
     public async Task<List<string>> GetUniqueTimeseriesDimensions()
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, "https://exerciselog-api.kvalvaag-tech.com/api/DistinctDimensions");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{_baseUrl}/api/DistinctDimensions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
 
         var httpClient = new HttpClient();
