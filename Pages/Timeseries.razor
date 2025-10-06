@@ -36,7 +36,8 @@
                     @if (UseExistingDimension)
                     {
                         <MudAutocomplete T="string" Label="Select or enter a dimension" @bind-Value="Ts.Dimension"
-                            CoerceText="true" Clearable="true" Placeholder="Choose dimension" SearchFunc="SearchValues">
+                            CoerceText="true" Clearable="true" Placeholder="Choose dimension" SearchFunc="SearchValues"
+                            MaxItems="null">
                         </MudAutocomplete>
                     }
                     else
