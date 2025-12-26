@@ -125,7 +125,25 @@ class Api
             Console.WriteLine("GET request successful. Response: " + responseContent);
         }
 
-        return LatestTimeseries;
+return LatestTimeseries;
+    }
+
+    public async Task DeleteTimeseries(int id)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"{_baseUrl}/api/timeseries/{id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+        var httpClient = new HttpClient();
+        var response = await httpClient.SendAsync(request);
+        if (response.IsSuccessStatusCode)
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("DELETE request successful. Response: " + responseContent);
+        }
+        else
+        {
+            throw new Exception($"Failed to delete timeseries with id {id}. Status: {response.StatusCode}");
+        }
     }
 }
 

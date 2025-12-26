@@ -76,11 +76,17 @@
                     <MudTh>Time</MudTh>
                     <MudTh>Dimension</MudTh>
                     <MudTh>Value</MudTh>
+                    <MudTh>Actions</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Time">@context.Timestamp</MudTd>
                     <MudTd DataLabel="Dimension">@context.Dimension</MudTd>
                     <MudTd DataLabel="Value">@context.Value</MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton @onclick="() => DeleteTimeseries(context.Id)" Variant="Variant.Text" Color="Color.Error" Size="Size.Small">
+                            <MudIcon Icon="@Icons.Material.Filled.Delete" />
+                        </MudButton>
+                    </MudTd>
                 </RowTemplate>
             </MudTable>
         </MudCardContent>
@@ -127,6 +133,22 @@
         catch (Exception ex) {
             Console.Write(ex.Message);
             Snackbar.Add("Failed to submit timeseries");
+        }
+    }
+
+    private async Task DeleteTimeseries(int id)
+    {
+        try
+        {
+            await apiService.DeleteTimeseries(id);
+            Snackbar.Add("Timeseries entry deleted successfully!", Severity.Success);
+            LatestTimeseries = await apiService.GetLatestTimeseries(5);
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.Write(ex.Message);
+            Snackbar.Add("Failed to delete timeseries entry", Severity.Error);
         }
     }
 
